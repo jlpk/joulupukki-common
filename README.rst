@@ -34,6 +34,8 @@ You can build the documentation ``tox -edocs``. The HTML documentation will be b
 Dev Env
 =======
 
-apt-get install rpm
 virtualenv --system-site-packages env
+source env/bin/activate
+pip install -r requirements.txt
+python setup.py develop
 
