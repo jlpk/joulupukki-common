@@ -1,9 +1,9 @@
-==========
-Joulupukki
-==========
+=================
+Joulupukki Common
+=================
 
 
-Joulupukki is a webservice to build linux packages (deb, RPM) using Docker.
+Joulupukki is a generic system to build and distribute packages from sources.
 
 LICENCE AGPLv3
 
@@ -11,20 +11,10 @@ LICENCE AGPLv3
 Installation
 ============
 
+::
 
-
-
-
-Run it
-======
-
-
-
-How to use it
-=============
-
-
-
+    pip install -r requirements
+    python setup.py develop
 
 Testing
 =======
