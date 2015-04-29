@@ -62,9 +62,9 @@ class Project(APIProject):
         self._save()
 
     @classmethod
-    def fetch(cls, user, project_name, sub_objects=True, get_last_build=False):
+    def fetch(cls, username, project_name, sub_objects=True, get_last_build=False):
         db_project = mongo.projects.find_one({"name": project_name,
-                                              "username": user})
+                                              "username": username})
         project = None
         if db_project is not None:
             project = cls(db_project, sub_objects)

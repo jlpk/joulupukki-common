@@ -83,7 +83,9 @@ class Carrier(object):
         if build_data is not None:
             build = Build(build_data)
             build.user = User.fetch(build_data['username'], sub_objects=False)
-            build.project = Project.fetch(build.user,
+            if build.user is None:
+                return None
+            build.project = Project.fetch(build.user.username,
                                           build_data['project_name'],
                                           sub_objects=False)
             return build
