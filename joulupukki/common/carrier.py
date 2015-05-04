@@ -3,6 +3,7 @@ import json
 import pika
 from pika.exceptions import AMQPConnectionError
 
+import exceptions
 import time
 
 from joulupukki.common.datamodel.build import Build
@@ -34,8 +35,13 @@ class Carrier(object):
         # self.channel = self.connection.channel()
 
     def connect(self):
-        self.connection = pika.BlockingConnection(self.parameters)
-        self.channel = self.connection.channel()
+        try:
+            self.connection = pika.BlockingConnection(self.parameters)
+            self.channel = self.connection.channel()
+        except exceptions:
+            self.logger.error("Can't connect to rabbitmq server."
+                              " Probable authentication error")
+            return False
 
     def on_connection_closed(self):
         self.channel = None
