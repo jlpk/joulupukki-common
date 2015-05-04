@@ -134,6 +134,8 @@ class Project(APIProject):
             filter_= {"$or": []}
             filter_["$or"].append({"name": regx})
             filter_["$or"].append({"username": regx})
+        if offset is None:
+            offset = 0
         db_projects = mongo.projects.find(filter_, limit=limit, skip=offset)
         projects = []
         if db_projects is not None:
