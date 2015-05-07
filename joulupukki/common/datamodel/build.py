@@ -38,7 +38,10 @@ class Build(APIBuild):
     username = wsme.wsattr(wtypes.text, mandatory=False)
     project_name = wsme.wsattr(wtypes.text, mandatory=False)
     jobs = wsme.wsattr([Job], mandatory=False, default=None)
-    job_count = wsme.wsattr(int, mandatory=False, default=None)
+    job_count = wsme.wsattr(int, mandatory=False, default=0)
+
+
+
 
     def __init__(self, data=None, subojects=True):
         if data is None:
@@ -51,6 +54,11 @@ class Build(APIBuild):
         self.project = None
         if self.username and self.project_name:
             self.jobs = self.get_jobs()
+        # fields on db
+        self.db_fields = ("job_count", "committer_email", "project_name", "package_name", "created",
+                  "package_version", "status", "forced_distro", "package_release",
+                  "username", "source_type", "finished", "snapshot", "branch", "commit",
+                  "message", "source_url", "committer_name")
 
     @classmethod
     def sample(cls):
@@ -81,27 +89,11 @@ class Build(APIBuild):
         self.finished = None
         self.status = "created"
 
-        # TODO: check password
-        # Write project data
-        try:
-            self._save()
-            return True
-        except Exception as exp:
-            # TODO handle error
-            return False
-
     def _save(self):
         """ Write project data on disk """
-        data = self.as_dict()
-        del(data['jobs'])
-        mongo.builds.update({
-            "id_": self.id_,
-            "username": self.username,
-            "project_name": self.project_name},
-            data,
-            upsert=True
-        )
+        # TODO delete me i'm useless
         return True
+
 
 
 
@@ -151,24 +143,27 @@ class Build(APIBuild):
 
 
 
+    def __setattr__(self, name, value):
+        super(Build, self).__setattr__(name, value)
+        if self.username and self.project_name and self.id_ and hasattr(self, 'fields'):
+            if name in self.db_fields:
+                mongo.builds.update({
+                    "id_": self.id_,
+                    "username": self.username,
+                    "project_name": self.project_name},
+                    {"$set": {name: value}},
+                    w=1,
+                    upsert=True
+                )
 
 
     def set_status(self, status):
         self.status = status
-        self._save()
 
 
 
-
-
-
-
-
-
-
-
-
-
+    def inc_job_count(self):
+        self.job_count += 1
 
 
     def get_jobs(self):
@@ -192,128 +187,9 @@ class Build(APIBuild):
             delattr(build, 'jobs')
         return build
 
-
-
-
-
     def finishing(self):
         self.finished = time.time()
-        self._save()
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-
-    @staticmethod
-    def get_data_file_path(username, project_name, id_):
-        """ Return build data file (build.cfg) path"""
-        return os.path.join(pecan.conf.workspace_path, username, project_name, "builds", str(id_), "build.cfg")
-
-
-    def get_output_folder_path(self, distro=None):
-        """ Return project folder path"""
-        if distro not in supported_distros:
-            return os.path.join(pecan.conf.workspace_path,
-                                self.__class__.get_folder_path(self.user.username, self.project.name, self.id_),
-                                "output")
-        else:
-            return os.path.join(pecan.conf.workspace_path,
-                            self.__class__.get_folder_path(self.user.username, self.project.name, self.id_),
-                            "output",
-                            distro)
-
-    @classmethod
-    def fetch(cls, project, id_, sub_objects=True, full_data=False):
-        build_folder_path = Build.get_folder_path(project.user.username, project.name, id_)
-        if not os.path.isdir(build_folder_path):
-            # User doesn't exists
-            return None
-        build_file = Build.get_data_file_path(project.user.username, project.name, id_)
-        if not os.path.isfile(build_file):
-            # config not found ...
-            # this is release strange
-            # this environnement is in bad state
-            # we should think about delete it
-            return False
-        # Read userdata.cfg
-        with open(build_file, 'r') as f:
-            try:
-                build_data = json.load(f)
-                build = cls(**build_data)
-                if sub_objects or full_data:
-                    build.project = project
-                    build.user = project.user
-                    build.jobs = build.get_jobs()
-                    if not full_data:
-                        build.user = None
-                        build.project = None
-                    
-                return build
-            except Exception as exp:
-                # TODO handle error
-                return False
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def save(self):
-        build_file = Build.get_data_file_path(self.user.username, self.project.name, self.id_)
-        data = json.dumps({"source_url": self.source_url,
-                           "source_type": self.source_type,
-                           "branch": self.branch,
-                           "commit": self.commit,
-                           "id_": self.id_,
-                           "created": self.created,
-                           "finished": self.finished,
-                           "package_name": self.package_name,
-                           "package_version": self.package_version,
-                           "package_release": self.package_release,
-                           "status": self.status,
-                           })
-
-        with open(build_file, 'w') as f:
-            try:
-                f.write(data)
-            except Exception as exp:
-                # TODO handle error
-                raise Exception("Error saving build data")
-        return True
-
-
-    def get_latest_job(self):
-        job_ids = self.get_jobs()
-        if job_ids == []:
-            return None
-        return job_ids[-1]
-
-
-'''
