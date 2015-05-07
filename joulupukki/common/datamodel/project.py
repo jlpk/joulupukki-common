@@ -136,7 +136,9 @@ class Project(APIProject):
             filter_["$or"].append({"username": regx})
         if offset is None:
             offset = 0
-        db_projects = mongo.projects.find(filter_, limit=limit, skip=offset)
+        # TODO better handle of limit and offset
+        #db_projects = mongo.projects.find(filter_, limit=limit, skip=offset)
+        db_projects = mongo.projects.find(filter_)
         projects = []
         if db_projects is not None:
             projects = [cls(db_project, sub_objects=False) for db_project in db_projects]
@@ -151,7 +153,7 @@ class Project(APIProject):
                 projects = [p for p in projects if p.builds != []]
                 # Sort project
                 projects.sort(key=lambda p: p.builds[0].created, reverse=True)
-        return projects
+        return projects[:min(len(projects), limit)]
 
 
 
