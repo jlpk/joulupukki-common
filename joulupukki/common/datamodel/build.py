@@ -189,7 +189,3 @@ class Build(APIBuild):
 
     def finishing(self):
         self.finished = time.time()
-
-
-
-
