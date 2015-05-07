@@ -76,7 +76,7 @@ class User(APIUser):
             # TODO handle error
             return False
 
-    def update(self, new_user_data):
+    def update(self, new_user_data, access_token=None):
         # Remove no editable args
         calculed_args = ['token',
                          'username',
@@ -86,9 +86,13 @@ class User(APIUser):
             if hasattr(new_user_data, arg):
                 delattr(new_user_data, arg)
         # Check password
-        if not check_password(new_user_data.password, self.password):
-            # TODO bas password
-            return False
+        if pecan.conf.auth is None:
+            if not check_password(new_user_data.password, self.password):
+                # TODO bas password
+                return False
+        elif pecan.conf.auth == 'github':
+            if self.token_github != access_token:
+                return False
         # Set new values
         for key, val in new_user_data.as_dict().items():
             # We don't want to modify password
@@ -103,9 +107,14 @@ class User(APIUser):
             # TODO handle 
             return False
 
+
     def _save(self):
         """ Write user data on disk """
-        mongo.users.update({"username": self.username}, self.as_dict(), upsert=True)
+        data = self.as_dict()
+        # TODO Delete useless data
+        if 'projects' in data:
+            data['projects'] = []
+        mongo.users.update({"username": self.username}, data, upsert=True)
         return True
 
 
