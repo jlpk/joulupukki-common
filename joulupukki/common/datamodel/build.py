@@ -38,6 +38,7 @@ class Build(APIBuild):
     username = wsme.wsattr(wtypes.text, mandatory=False)
     project_name = wsme.wsattr(wtypes.text, mandatory=False)
     jobs = wsme.wsattr([Job], mandatory=False, default=None)
+    job_count = wsme.wsattr(int, mandatory=False, default=None)
 
     def __init__(self, data=None, subojects=True):
         if data is None:

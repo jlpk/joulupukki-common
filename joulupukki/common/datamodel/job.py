@@ -13,12 +13,12 @@ from joulupukki.common.datamodel import types
 #from joulupukki.common.datamodel.build import Build
 from joulupukki.common.distros import supported_distros, reverse_supported_distros
 
-
-
 source_types = wtypes.Enum(str, 'local', 'git')
+
 
 class APIJob(types.Base):
     pass
+
 
 class Job(APIJob):
     id_ = wsme.wsattr(int, mandatory=False)
@@ -33,7 +33,6 @@ class Job(APIJob):
     project_name = wsme.wsattr(wtypes.text, mandatory=False)
     build_id = wsme.wsattr(int, mandatory=False)
 
-
     def __init__(self, data=None):
         if data is None:
             APIJob.__init__(self)
@@ -44,7 +43,6 @@ class Job(APIJob):
         self.user = None
         self.project = None
         self.build = None
-
 
     @classmethod
     def sample(cls):
@@ -60,18 +58,21 @@ class Job(APIJob):
         required_args = ['distro',
                          'username',
                          'project_name',
-                         'build_id',
-                        ]
+                         'build_id']
         for arg in required_args:
             if not getattr(self, arg):
                 # TODO handle error
                 return False
         # Get last ids
         self.id_ = 1
-        jobs_ids = [x.get("id_") for x in mongo.jobs.find({"username": self.username,
-                                                           "project_name": self.project_name,
-                                                           "build_id": self.build_id},
-                                                          ["id_"])]
+        jobs_ids = [
+            x.get("id_")
+            for x in mongo.jobs.find(
+                {"username": self.username, "project_name": self.project_name,
+                 "build_id": self.build_id},
+                ["id_"]
+            )
+        ]
         if jobs_ids:
             self.id_ = max(jobs_ids) + 1
         # Set attributes
