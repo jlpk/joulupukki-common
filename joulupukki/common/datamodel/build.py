@@ -145,7 +145,7 @@ class Build(APIBuild):
 
     def __setattr__(self, name, value):
         super(Build, self).__setattr__(name, value)
-        if self.username and self.project_name and self.id_ and hasattr(self, 'fields'):
+        if self.username and self.project_name and self.id_ and hasattr(self, 'db_fields'):
             if name in self.db_fields:
                 mongo.builds.update({
                     "id_": self.id_,
