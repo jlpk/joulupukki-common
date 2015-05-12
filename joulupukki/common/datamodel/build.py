@@ -44,10 +44,7 @@ class Build(APIBuild):
 
 
     def __init__(self, data=None, subojects=True):
-        self.db_fields = ("job_count", "committer_email", "project_name", "package_name", "created",
-                  "package_version", "status", "forced_distro", "package_release",
-                  "username", "source_type", "finished", "snapshot", "branch", "commit",
-                  "message", "source_url", "committer_name")
+        self.db_fields = ("created")
         if data is None:
             APIBuild.__init__(self)
         if isinstance(data, APIBuild):
@@ -59,6 +56,10 @@ class Build(APIBuild):
         if self.username and self.project_name:
             self.jobs = self.get_jobs()
         # fields on db
+        self.db_fields = ("job_count", "committer_email", "project_name", "package_name", "created",
+                          "package_version", "status", "forced_distro", "package_release",
+                          "username", "source_type", "finished", "snapshot", "branch", "commit",
+                          "message", "source_url", "committer_name")
 
     @classmethod
     def sample(cls):
