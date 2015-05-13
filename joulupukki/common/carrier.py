@@ -39,8 +39,8 @@ class Carrier(object):
             self.connection = pika.BlockingConnection(self.parameters)
             self.channel = self.connection.channel()
         except Exception:
-            self.logger.error("Can't connect to rabbitmq server."
-                              " Probable authentication error")
+            logging.error("Can't connect to rabbitmq server. "
+                          "Probable authentication error")
             return False
 
     def on_connection_closed(self):
