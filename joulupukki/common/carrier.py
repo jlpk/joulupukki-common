@@ -46,9 +46,9 @@ class Carrier(object):
     def on_connection_closed(self):
         self.channel = None
         if not self.closing:
-            print("Connection closed, reopening in 5 seconds: (%s) %s")
-            time.sleep(5)
-            self.connect()
+            while not self.connect():
+                logging.info("RabbitMQ Connection closed, reopening in 5 seconds.")
+                time.sleep(5)
             self.declare_queue(self.queue)
             self.declare_builds()
 
