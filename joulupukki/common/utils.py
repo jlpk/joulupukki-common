@@ -5,6 +5,7 @@ import os
 
 
 
+from joulupukki.common.database import mongo
 
 def encrypt_password(raw_password):
     return pbkdf2_sha256.encrypt(raw_password,
@@ -20,9 +21,11 @@ def check_password(raw_password, enc_password):
     return pbkdf2_sha256.verify(raw_password, enc_password)
 
 
-def create_token(mongo):
+def create_token():
     user = 'init'
-    while user is not None:
+    project = 'init'
+    while user is not None and project is not None:
         token = binascii.hexlify(os.urandom(16))
-        user = mongo.user.find_one({"token": token})
+        user = mongo.users.find_one({"token": token})
+        project = mongo.projects.find_one({"token": token})
     return token

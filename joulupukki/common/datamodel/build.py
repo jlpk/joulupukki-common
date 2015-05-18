@@ -13,7 +13,7 @@ from joulupukki.common.datamodel import types
 from joulupukki.common.datamodel.job import Job
 from joulupukki.common.distros import supported_distros
 
-source_types = wtypes.Enum(str, 'local', 'git')
+source_types = wtypes.Enum(str, 'local', 'git', 'gitlab', 'gihub')
 
 class APIBuild(types.Base):
     source_url = wsme.wsattr(wtypes.text, mandatory=True)

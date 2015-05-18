@@ -10,6 +10,8 @@ import wsme.types as wtypes
 from joulupukki.common.database import mongo, DESCENDING
 from joulupukki.common.datamodel import types
 from joulupukki.common.datamodel.build import Build
+from joulupukki.common.utils import create_token
+
 
 
 class APIProject(types.Base):
@@ -21,6 +23,10 @@ class Project(APIProject):
     description = wsme.wsattr(wtypes.text, mandatory=False)
     enabled = wsme.wsattr(bool, mandatory=False, default=False)
     builds = wsme.wsattr([Build], mandatory=False)
+    gitlab_project_id = wsme.wsattr(int, mandatory=False)
+    gitlab_hook_id = wsme.wsattr(int, mandatory=False)
+    token = wsme.wsattr(wtypes.text, mandatory=False)
+
 
     def __init__(self, data=None, sub_objects=True):
         if data is None:
@@ -48,7 +54,8 @@ class Project(APIProject):
             if not getattr(self, arg):
                 # TODO handle error
                 return False
-        # TODO: check password
+        # Create token
+        self.token = create_token()
         # Write project data
         try:
             self._save()
@@ -72,9 +79,24 @@ class Project(APIProject):
                 project.builds = [project.builds[0]]
         return project
 
+    @classmethod
+    def fetch_from_token(cls, token, sub_objects=True):
+        db_project = mongo.projects.find_one({"token": token})
+        project = None
+        if db_project is not None:
+            project = cls(db_project, sub_objects)
+            if sub_objects and get_last_build:
+                project.builds = [project.builds[0]]
+        return project
+
+
     def _save(self):
         """ Write project data on disk """
         data = self.as_dict()
+        # TODO Delete useless data
+        if 'builds' in data:
+            data['builds'] = []
+
         mongo.projects.update({"name": self.name,
                                "username": data['username']},
                               data,

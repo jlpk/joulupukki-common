@@ -24,6 +24,9 @@ class User(APIUser):
     orgs = wsme.wsattr([wtypes.text], mandatory=False)
     token = wsme.wsattr(wtypes.text, mandatory=False)
     token_github = wsme.wsattr(wtypes.text, mandatory=False)
+    token_gitlab = wsme.wsattr(wtypes.text, mandatory=False)
+    id_gitlab = wsme.wsattr(int, mandatory=False)
+    gitlab_group = wsme.wsattr(bool, mandatory=False, default=False)
 
     def __init__(self, data=None, sub_objects=True):
         if data is None:
@@ -64,7 +67,7 @@ class User(APIUser):
                 # TODO handle error
                 return False
         # Create token
-        self.token = create_token(mongo) 
+        self.token = create_token() 
         # Encrypt password
         if self.password:
             self.password = encrypt_password(self.password)
@@ -138,6 +141,15 @@ class User(APIUser):
     @classmethod
     def fetch_from_github_token(cls, token_github, sub_objects=True):
         db_user = mongo.users.find_one({"token_github": token_github})
+        user = None
+        if db_user is not None:
+           user = cls(db_user, sub_objects=sub_objects)
+           delattr(user, 'password')
+        return user
+
+    @classmethod
+    def fetch_from_gitlab_token(cls, token_gitlab, sub_objects=True):
+        db_user = mongo.users.find_one({"token_gitlab": token_gitlab})
         user = None
         if db_user is not None:
            user = cls(db_user, sub_objects=sub_objects)
