@@ -37,6 +37,11 @@ class User(APIUser):
             APIUser.__init__(self, **data)
         if sub_objects:
             self.projects = self.get_projects()
+        # fields on db
+        self.db_fields = ("token", "token_github", "token_gitlab",
+                          "id_gitlab", "gitlab_group", "name",
+                          "email", "password")
+
 
     @classmethod
     def sample(cls):
@@ -155,3 +160,18 @@ class User(APIUser):
            user = cls(db_user, sub_objects=sub_objects)
            delattr(user, 'password')
         return user
+
+#    Disabled for now
+#    TODO
+#    def __setattr__(self, name, value):
+#        super(Build, self).__setattr__(name, value)
+#        if self.username and self.project_name and self.id_ and hasattr(self, 'db_fields'):
+#            if name in self.db_fields:
+#                mongo.users.update({
+#                    "id_": self.id_,
+#                    "username": self.username},
+#                    {"$set": {name: value}},
+#                    upsert=True
+#                )
+
+
