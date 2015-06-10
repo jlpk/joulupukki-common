@@ -20,34 +20,39 @@ class Carrier(object):
         """
         self.server = server
         self.port = port
+        self.username = username
+        self.password = password
+        self.vhost = vhost
         self.exchange = exchange
         self.closing = False
-        rabbit_credentials = pika.PlainCredentials(username, password, vhost)
-        self.parameters = pika.ConnectionParameters(
-            host=self.server,
-            port=self.port,
-            credentials=rabbit_credentials,
-        )
 
         self.queue = queue
         self.connect()
-        # self.connection = pika.BlockingConnection(self.parameters)
-        # self.channel = self.connection.channel()
 
     def connect(self):
+        logging.info("Connecting to rabbitmq server...")
+        rabbit_credentials = pika.PlainCredentials(self.username, self.password, self.vhost)
+        parameters = pika.ConnectionParameters(
+                host=self.server,
+                port=self.port,
+                credentials=rabbit_credentials,
+                )
         try:
-            self.connection = pika.BlockingConnection(self.parameters)
+            self.connection = pika.BlockingConnection(parameters)
             self.channel = self.connection.channel()
+            logging.info("Connected to %s:%s.", self.server, self.port)
         except Exception:
             logging.error("Can't connect to rabbitmq server. "
                           "Probable authentication error")
             return False
+        return True
 
     def on_connection_closed(self):
         self.channel = None
+        logging.info("RabbitMQ connection closed.")
         if not self.closing:
             while not self.connect():
-                logging.info("RabbitMQ Connection closed, reopening in 5 seconds.")
+                logging.info("RabbitMQ connection closed, reopening in 5 seconds.")
                 time.sleep(5)
             self.declare_queue(self.queue)
             self.declare_builds()
